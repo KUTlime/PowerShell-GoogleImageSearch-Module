@@ -9,9 +9,13 @@ This module enables users to search Windows lock screen wallpaper images or any 
 - User can easily search Windows lockscreen images in Google Image Search from PowerShell.
 
 # Installation 
-Run PowerShell Console as administrator and type:
+Run PowerShell as administrator and type:
 ```powershell
 Install-Module -Name GoogleImageSearch
+```
+and import module into workspace by typing:
+```powershell
+Import-Module -Name GoogleImageSearch
 ```
 
 # Basic use
