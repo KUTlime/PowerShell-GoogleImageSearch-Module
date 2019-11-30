@@ -8,10 +8,11 @@
         $ImagePath
     )
 
-    # extract the image file name, without path
+    # Extract the image file name, without path.
     $fileName = Split-Path $imagePath -Leaf
+    Write-Verbose -Message "The image name for search: $fileName"
 
-    # the request body has some boilerplate before the raw image bytes (part1) and some after (part2)
+    # The request body has some boilerplate before the raw image bytes (part1) and some after (part2)
     #   note that $filename is included in part1
     $part1 = @"
 -----------------------------7dd2db3297c2202
@@ -54,7 +55,7 @@ Content-Disposition: form-data; name="image_content"
     $respStream = $request.GetResponse().GetResponseStream()
 
     # pluck out the results page link that you would otherwise be redirected to
-    (New-Object Io.StreamReader $respStream).ReadToEnd() -match 'HREF\="([^"]+)"' | Out-Null
+    (New-Object Io.StreamReader $respStream).ReadToEnd() -match 'HREF\="([^"]+)"' | Write-Verbose
     $matches[1]
 }
 
@@ -62,7 +63,7 @@ function Get-Image
 {
     begin
     {
-        [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
+        [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") | Write-Verbose
     }
     process
     {
@@ -145,7 +146,7 @@ function Search-WindowsLockScreenWallpapers
     ####################################################
     if ((Test-Path $DumpPath) -eq $false -and $DumpFiles -ne $null)
     {
-        New-Item -Path $DumpPath -ItemType Directory -Name Temp | Write-Verbose
+        New-Item -Path $DumpPath -ItemType Directory | Write-Verbose
     }
     ####################################################
 
@@ -164,7 +165,8 @@ function Search-WindowsLockScreenWallpapers
     ####################################################
     if ($DumpFiles)
     {
-        $Images | ForEach-Object { Copy-Item $_.FullName -Destination ("C:\Temp\$($_.Name).jpg") -ErrorAction Continue }
+        Write-Verbose -Message "Dumping $($Images.Length) into $DumpPath"
+        $Images | ForEach-Object { Copy-Item $_.FullName -Destination ("$DumpPath\$($_.Name).jpg") -ErrorAction Continue }
     }
     $Images | ForEach-Object { Search-Image -ImagePath $_.FullName }
     ####################################################
