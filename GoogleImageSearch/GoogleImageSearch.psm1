@@ -1,4 +1,12 @@
-﻿function Get-GoogleImageSearchUrl
+﻿function Test-PSVersion
+{
+    if ($PSVersionTable.PSVersion.Major -gt 5)
+    {
+        throw [System.NotSupportedException]::new("PowerShell Core is not supported yet.")
+    }
+}
+
+function Get-GoogleImageSearchUrl
 {
     param(
         [Parameter(Mandatory = $true)]
@@ -7,6 +15,8 @@
         [System.IO.FileInfo]
         $ImagePath
     )
+    # Test for PS Core that is not supported
+    Test-PSVersion
 
     # Extract the image file name, without Path.
     $fileName = Split-Path $imagePath -Leaf
@@ -71,7 +81,7 @@ function Get-Image
         [Drawing.Image]::FromFile($_.FullName) |
         ForEach-Object {
             $_ |
-            Add-Member -PassThru NoteProperty FullName ('{0}' -f $file.FullName)
+            Add-Member -NotePropertyMembers @{FullName = $file.FullName; Name = $file.Name } -PassThru
         }
     }
 }
@@ -155,7 +165,7 @@ function Search-WindowsLockScreenWallpapers
     # Select Images
     ####################################################
     $Images = Get-ChildItem -Path $env:LOCALAPPDATA\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets -ErrorAction Continue |
-    Where-Object { (Get-KnownFileHeader -Path $_.FullName) -eq 'jpg'}
+    Where-Object { (Get-KnownFileHeader -Path $_.FullName) -eq 'jpg' }
     $Images = $Images | Get-Image | Where-Object { $_.Width -gt $_.Height } | Sort-Object { $_.CreationTimeUtc } -Descending | Select-Object -First $NumberOfImages
     ####################################################
 
@@ -316,7 +326,7 @@ function Get-KnownFileHeader
 "epub","50 4B 03 04 0A 00 02 00"
 '@ | ConvertFrom-Csv | Sort-Object { $_.header.Length } -Descending
 
-    $known | ForEach-Object { $_.header = $_.header -replace '\s' }
+        $known | ForEach-Object { $_.header = $_.header -replace '\s' }
     }
     Process
     {
