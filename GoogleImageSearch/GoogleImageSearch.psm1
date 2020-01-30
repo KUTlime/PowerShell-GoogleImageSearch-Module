@@ -15,8 +15,6 @@ function Get-GoogleImageSearchUrl
         [System.IO.FileInfo]
         $ImagePath
     )
-    # Test for PS Core that is not supported
-    Test-PSVersion
 
     # Extract the image file name, without Path.
     $fileName = Split-Path $imagePath -Leaf
@@ -62,11 +60,25 @@ Content-Disposition: form-data; name="image_content"
     $stream.Close()
 
     # get response stream, which should contain a 302 redirect to the results page
-    $respStream = $request.GetResponse().GetResponseStream()
+    if ($PSVersionTable.PSVersion.Major -gt 5)
+    {
+        try
+        {
+            $request.GetResponse()
+        }
+        catch [System.Exception]
+        {
+            Write-Output $PSItem.Exception.Response.Headers[0]
+        }
+    }
+    else
+    {
+        $respStream = $request.GetResponse().GetResponseStream()
 
-    # pluck out the results page link that you would otherwise be redirected to
-    (New-Object Io.StreamReader $respStream).ReadToEnd() -match 'HREF\="([^"]+)"' | Write-Verbose
-    $matches[1]
+        # pluck out the results page link that you would otherwise be redirected to
+        (New-Object Io.StreamReader $respStream).ReadToEnd() -match 'HREF\="([^"]+)"' | Write-Verbose
+        $matches[1]
+    }
 }
 
 function Get-Image
