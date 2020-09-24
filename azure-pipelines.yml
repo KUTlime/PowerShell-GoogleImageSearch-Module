@@ -1,0 +1,17 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+pr:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: PowerShell@2
+  displayName: 'Executing of Publish Module script'
+  inputs:
+    filePath: '$(System.DefaultWorkingDirectory)\PublishModule.ps1'
+    arguments: '$(NugetApiKey)'
