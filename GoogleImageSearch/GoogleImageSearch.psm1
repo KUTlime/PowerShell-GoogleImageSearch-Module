@@ -2,16 +2,16 @@
 {
     if ($PSVersionTable.PSVersion.Major -gt 5)
     {
-        throw [System.NotSupportedException]::new("PowerShell Core is not supported yet.")
+        throw [System.NotSupportedException]::new('PowerShell Core is not supported yet.')
     }
 }
 
 function Get-GoogleImageSearchUrl
 {
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
-        [ValidateScript( { Test-Path $_ })]
+        [ValidateScript( { Test-Path "$($_.FullName)" })]
         [System.IO.FileInfo]
         $ImagePath
     )
@@ -29,14 +29,14 @@ Content-Type: image/jpeg
 
 
 "@
-    $part2 = @"
+    $part2 = @'
 -----------------------------7dd2db3297c2202
 Content-Disposition: form-data; name="image_content"
 
 
 -----------------------------7dd2db3297c2202--
 
-"@
+'@
 
     # grab the raw bytes composing the image file
     $imageBytes = [Io.File]::ReadAllBytes($imagePath.FullName)
@@ -47,7 +47,7 @@ Content-Disposition: form-data; name="image_content"
 
     # create the HTTP request, populate headers
     $request = [Net.HttpWebRequest] ([Net.HttpWebRequest]::Create('http://images.google.com/searchbyimage/upload'))
-    $request.Method = "POST"
+    $request.Method = 'POST'
     $request.ContentType = 'multipart/form-data; boundary=---------------------------7dd2db3297c2202'  # must match the delimiter in the body, above
     $request.ContentLength = $data.Length
 
@@ -85,7 +85,7 @@ function Get-Image
 {
     begin
     {
-        [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") | Write-Verbose
+        [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing') | Write-Verbose
     }
     process
     {
@@ -228,14 +228,16 @@ function Search-Image
       A system query to the default web browser with the input image.
   #>
     param(
-        [Parameter(Mandatory = $true,
-            ValueFromPipeline = $true)]
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
-        [ValidateScript( { Test-Path $_ })]
+        [ValidateScript( { Test-Path "$($_.FullName)" })]
         [System.IO.FileInfo]
         $ImagePath
     )
-    Start-Process -FilePath (Get-GoogleImageSearchUrl -ImagePath $ImagePath.FullName)
+    process
+    {
+        Start-Process -FilePath (Get-GoogleImageSearchUrl -ImagePath $ImagePath.FullName)
+    }
 }
 
 function Get-KnownFileHeader
@@ -354,7 +356,7 @@ function Get-KnownFileHeader
         $bytes |
         ForEach-Object `
         {
-            if (("{0:X}" -f $_).Length -eq 1)
+            if (('{0:X}' -f $_).Length -eq 1)
             {
                 $HeaderAsHexString.Append('0{0:X}' -f $_) | Write-Verbose
             }
