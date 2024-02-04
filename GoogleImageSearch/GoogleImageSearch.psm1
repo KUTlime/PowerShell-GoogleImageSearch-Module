@@ -60,25 +60,11 @@ Content-Disposition: form-data; name="image_content"
     $stream.Close()
 
     # get response stream, which should contain a 302 redirect to the results page
-    if ($PSVersionTable.PSVersion.Major -gt 5)
-    {
-        try
-        {
-            $request.GetResponse()
-        }
-        catch [System.Exception]
-        {
-            Write-Output $PSItem.Exception.Response.Headers[0]
-        }
-    }
-    else
-    {
-        $respStream = $request.GetResponse().GetResponseStream()
+    $respStream = $request.GetResponse().GetResponseStream()
 
-        # pluck out the results page link that you would otherwise be redirected to
-        (New-Object Io.StreamReader $respStream).ReadToEnd() -match 'HREF\="([^"]+)"' | Write-Verbose
-        $matches[1]
-    }
+    # pluck out the results page link that you would otherwise be redirected to
+    (New-Object Io.StreamReader $respStream).ReadToEnd() -match 'HREF\="([^"]+)"' | Write-Verbose
+    $matches[1]
 }
 
 function Get-Image
@@ -369,3 +355,5 @@ function Get-KnownFileHeader
         $known | Where-Object { $_.Header.StartsWith($HeaderAsHexString.ToString()) } | Select-Object -First 1 | ForEach-Object { $_.Extension }
     }
 }
+
+Search-Image 'D:\Test 1 žřčš\IMG-20221228-WA0006.jpg' -Verbose -InformationAction:Continue
