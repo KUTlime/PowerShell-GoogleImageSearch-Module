@@ -55,16 +55,13 @@ Content-Disposition: form-data; name="image_content"
     $request.AllowAutoredirect = $false
 
     # populate the request body
-    $stream = $request.GetRequestStream()
-    $stream.Write($data, 0, $data.Length)
-    $stream.Close()
-
-    # get response stream, which should contain a 302 redirect to the results page
-    $respStream = $request.GetResponse().GetResponseStream()
-
-    # pluck out the results page link that you would otherwise be redirected to
-    (New-Object Io.StreamReader $respStream).ReadToEnd() -match 'HREF\="([^"]+)"' | Write-Verbose
-    $matches[1]
+    $response = $request.GetResponse()
+    if ($response.StatusCode -eq 302) {
+        $redirectUrl = $response.Headers["Location"]
+        Write-Information -Message "Redirection to: $redirectUrl"
+        return $redirectUrl
+    }
+    throw [System.InvalidOperationException]::new('The Google image search engine has not provided a redirect URL for your image')
 }
 
 function Get-Image
